@@ -1,6 +1,8 @@
 import math
 import agent
 import board
+
+
 ###########################
 # Alpha-Beta Search Agent #
 ###########################
@@ -16,6 +18,10 @@ class AlphaBetaAgent(agent.Agent):
         super().__init__(name)
         # Max search depth
         self.max_depth = max_depth
+        self.step_depth = max_depth * 2
+        self.score = 100000
+        self.alpha = -99999
+        self.beta = 99999
 
     # Check if a line of identical tokens exists starting at (x,y) in direction (dx,dy)
     #
@@ -29,92 +35,132 @@ class AlphaBetaAgent(agent.Agent):
         # Avoid out-of-bounds errors
         if ((x + (n-1) * dx >= brd.w) or
             (y + (n-1) * dy < 0) or (y + (n-1) * dy >= brd.h)):
-            return False
+            return 0
         # Get token at (x,y)
         t = brd.board[y][x]
         # Go through elements
+        count = 1
         for i in range(1, n):
-            if brd.board[y + i*dy][x + i*dx] != t:
-                return False
-        return True
+            if brd.board[y + i*dy][x + i*dx] == t:
+                count = count
+        if count == n:
+            if brd.board[y][x] == 1:
+                return self.score
+            elif brd.board[y][x] == 2:
+                return -self.score
+            else:
+                return 0
+        else:
+            if brd.board[y][x] == 1:
+                return count
+            elif brd.board[y][x] == 2:
+                return -count
+            else:
+                return 0
+
 
     # Python3 program to extract first and last
     # element of each sublist in a list of lists
     def extract_brd(self, lst):
         return [item[0] for item in lst]
 
-
     # Python3 program to extract first and last
     # element of each sublist in a list of lists
     def extract_col(self, lst):
         return [item[1] for item in lst]
 
-    def getKey(self,item):
+    def getKey(self, item):
         return item[1]
-
-
-    def sortSuccessors(self, succ, brd):
-        stack = []
-        sorted_list = []
-        for i in range(0, brd.w):
-           stack.append(succ[i])
-
-#TODO edit for n = 5
-        for i in range(0, len(stack)):
-            if self.getKey(stack[i]) == 3:
-                sorted_list.append(stack.remove(stack[i]))
-
-        for i in range(0, len(stack)):
-            if self.getKey(stack[i]) == 2 or self.getKey(stack[i]) == 4:
-                sorted_list.append(stack.remove(stack[i]))
-
-
-
 
     # Check if a line of n identical tokens exist in any direction
     #
     # PARAM [int] x:  the x coordinate of the starting cell
     # PARAM [int] y:  the y coordinate of the starting cell
     # RETURN [Bool]: True if n tokens of the same type have been found, False otherwise
-    def is_any_n_at(self,brd, x, y, n):
+    def get_score(self, brd, n):
         """Return True if a line of identical tokens exists starting at (x,y) in any direction"""
-        return (self.n_connection_value(brd, x, y, 1, 0 , n) or  # Horizontal
-                self.n_connection_value(brd, x, y, 0, 1, n) or  # Vertical
-                self.n_connection_value(brd, x, y, 1, 1, n) or  # Diagonal up
-                self.n_connection_value(brd, x, y, 1, -1, n))  # Diagonal down
+        vertical = 0
+        horizontal = 0
+        diag1 = 0
+        diag2 = 0
 
 
-    def count_m_value(self, brd):
         for x in range(brd.w):
             for y in range(brd.h):
-                if (brd.board[y][x] != 0) and self.max_depth == 5 and self.is_any_n_at(brd,x,y,5):
-                    if brd.board[y][x]==1:
-                        return 5
-                    else:
-                        return -5
-                if (brd.board[y][x] != 0) and self.is_any_n_at(brd,x,y,4):
-                    if brd.board[y][x]==1:
-                        return 4
-                    else:
-                        return -4
-                if (brd.board[y][x] != 0) and self.is_any_n_at(brd,x,y,3):
-                    if brd.board[y][x]==1:
-                        return 3
-                    else:
-                        return -3
-                if (brd.board[y][x] != 0) and self.is_any_n_at(brd, x, y, 2):
-                    if brd.board[y][x] == 1:
-                        return 2
-                    else:
-                        return -2
-                if (brd.board[y][x] != 0) and self.is_any_n_at(brd,x,y,1):
-                    if brd.board[y][x]==1:
-                        return 1
-                    else:
-                        return -1
+                score = self.n_connection_value(brd,x,y,1,0,n)
+                if score == self.score:
+                    return self.score
+                if score == -self.score:
+                    return -self.score
+                horizontal += score
 
+        for x in range(brd.w):
+            for y in range(brd.h):
+                score = self.n_connection_value(brd,x,y,0,1,n)
+                if score == self.score:
+                    return self.score
+                if score == -self.score:
+                    return -self.score
+                vertical += score
 
-        return 0
+        for x in range(brd.w):
+            for y in range(brd.h):
+                score = self.n_connection_value(brd,x,y,1,1,n)
+                if score == self.score:
+                    return self.score
+                if score == -self.score:
+                    return -self.score
+                diag1 += score
+
+        for x in range(brd.w):
+            for y in range(brd.h):
+                score = self.n_connection_value(brd,x,y,1,-1,n)
+                if score == self.score:
+                    return self.score
+                if score == -self.score:
+                    return -self.score
+                diag2 += score
+
+        points = horizontal + vertical + diag1 + diag2
+
+        return points
+
+     # def count_m_value_old(self, brd):
+    #     for x in range(brd.w):
+    #         for y in range(brd.h):
+    #             if (brd.board[y][x] != 0) and self.max_depth == 5 and self.is_any_n_at(brd, x, y, 5):
+    #                 if brd.board[y][x] == 1:
+    #                     return 5
+    #                 else:
+    #                     return -5
+    #             if (brd.board[y][x] != 0) and self.is_any_n_at(brd, x, y, 4):
+    #                 if brd.board[y][x] == 1:
+    #                     return 4
+    #                 else:
+    #                     return -4
+    #             if (brd.board[y][x] != 0) and self.is_any_n_at(brd, x, y, 3):
+    #                 if brd.board[y][x] == 1:
+    #                     return 3
+    #                 else:
+    #                     return -3
+    #             if (brd.board[y][x] != 0) and self.is_any_n_at(brd, x, y, 2):
+    #                 if brd.board[y][x] == 1:
+    #                     return 2
+    #                 else:
+    #                     return -2
+    #             if (brd.board[y][x] != 0) and self.is_any_n_at(brd, x, y, 1):
+    #                 if brd.board[y][x] == 1:
+    #                     return 1
+    #                 else:
+    #                     return -1
+    #
+    #     return 0
+
+    def count_m_value(self, brd):
+        if self.max_depth == 5:
+            return self.get_score(brd, 5)
+        else:
+            return self.get_score(brd,4)
 
     # Pick a column.
     #
@@ -125,65 +171,71 @@ class AlphaBetaAgent(agent.Agent):
     def go(self, brd):
         """Search for the best move (choice of column for the token)"""
         # Your code here
+        value = []
+        if brd.player == 1:
+            value = self.max_algorithm(brd, self.max_depth)
+        else:
+            value = self.min_algorithm(brd, self.max_depth)
+        return value[1]
+
+    # def check_player(self,brd):
+    #     player1 = 0
+    #     player2 = 0
+    #
+    #     for x in range(brd.w):
+    #         for y in range(brd.h):
+    #             if brd.board[y][x] == 1:
+    #                 player1+=1
 
 
 
-        (maxv, col) = self.max(brd, 0, 0)
-        return col
+
 
 
     # find the max value (the max number of identical tokens in a r)
-    def max(self, brd, current_depth, last_move):
+    def max_algorithm(self, brd, current_depth):
+        value = [-99999, None]
+        score = self.count_m_value(brd)
+        freecols = brd.free_cols()
+        if(current_depth == 0 or score == self.score or score == -self.score or not freecols):
+            return [score, None]
+        my_successors = self.get_successors(brd)
+        brd_list = self.extract_brd(my_successors)
+        col_list = self.extract_col(my_successors)
+        for j in range(0, len(my_successors)):
+            next_value = self.min_algorithm(brd_list[j], current_depth-1)
+            if value[1] == None or next_value[0] >= value[0]:
+                value[0] = next_value[0]
+                value[1] = col_list[j]
+                self.alpha = next_value[0]
+                print("max", "current_depth", current_depth, "maxv", value[0], "col", value[1])
+            if self.alpha > self.beta:
+                return value
 
-        col = last_move
-        current_depth = current_depth + 1
-        maxv = -4
-        if current_depth == self.max_depth * 2:
-            maxv = self.count_m_value(brd)
-            print("max", "current_depth", current_depth, "maxv", maxv, "col", col)
-            return (maxv,last_move)
+        return value
+
+
+    def min_algorithm(self, brd, current_depth):
+        value = [99999, None]
+        score = self.count_m_value(brd)
+        freecols = brd.free_cols()
+        if (current_depth == 0 or score == self.score or score == -self.score or not freecols):
+            return [score, None]
 
         my_successors = self.get_successors(brd)
         brd_list = self.extract_brd(my_successors)
         col_list = self.extract_col(my_successors)
         for j in range(0, len(my_successors)):
-            (minv,min_col) = self.min(brd_list[j], current_depth, col_list[j])
-            if minv > maxv:
-                maxv = minv
-                col = col_list[j]
-                print("max", "current_depth", current_depth, "maxv", maxv, "col", col)
-            elif minv<maxv:
-                break
+            next_value = self.max_algorithm(brd_list[j], current_depth-1)
+            if value[1] == None or next_value[0] <= value[0]:
+                value[1] = col_list[j]
+                value[0]= next_value[0]
+                self.beta = next_value[0]
+                print("min", "current_depth", current_depth, "minv", value[0], "col", value[1])
+            if self.alpha > self.beta:
+                return value
 
-
-        return (maxv, col)
-
-
-    def min(self, brd, current_depth, last_move):
-        current_depth = current_depth + 1
-        col = last_move
-        minv = 4
-        if current_depth == self.max_depth * 2:
-            maxv = self.count_m_value(brd)
-            print("min", "current_depth", current_depth, "minv", minv, "col", col)
-            return (maxv, last_move)
-
-        my_successors = self.get_successors(brd)
-        brd_list = self.extract_brd(my_successors)
-        col_list = self.extract_col(my_successors)
-        for j in range(0, len(my_successors)):
-            current_tuple = my_successors[j]
-            (maxv, max_col) = self.max(brd_list[j], current_depth,col_list[j])
-            if maxv < minv:
-                minv = maxv
-                col = col_list[j]
-                print("min", "current_depth", current_depth, "minv", minv, "col", col)
-            elif maxv > minv:
-                break
-
-
-        return (minv, col)
-
+        return value
 
     # Get the successors of the given board.
     #
@@ -207,5 +259,8 @@ class AlphaBetaAgent(agent.Agent):
             # (This internally changes nb.player, check the method definition!)
             nb.add_token(col)
             # Add board to list of successors
-            succ.append((nb,col))
+            succ.append((nb, col))
         return succ
+
+THE_AGENT = AlphaBetaAgent("Group9", 4)
+
