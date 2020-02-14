@@ -186,7 +186,6 @@ class AlphaBetaAgent(agent.Agent):
                 value[0] = next_value[0]
                 value[1] = col_list[j]
                 self.alpha = next_value[0]
-                print("max", "current_depth", current_depth, "maxv", value[0], "col", value[1], "alpha", self.alpha, "beta", self.beta)
             if self.alpha > self.beta:
                 return value
 
@@ -214,7 +213,6 @@ class AlphaBetaAgent(agent.Agent):
                 value[1] = col_list[j]
                 value[0]= next_value[0]
                 self.beta = next_value[0]
-                print("min", "current_depth", current_depth, "minv", value[0], "col", value[1], "alpha", self.alpha, "beta", self.beta)
             if self.alpha > self.beta:
                 return value
 
