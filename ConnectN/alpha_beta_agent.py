@@ -18,7 +18,6 @@ class AlphaBetaAgent(agent.Agent):
         super().__init__(name)
         # Max search depth
         self.max_depth = max_depth
-        self.step_depth = max_depth * 2
         self.score = 100000
         self.alpha = -99999
         self.beta = 99999
@@ -39,24 +38,49 @@ class AlphaBetaAgent(agent.Agent):
         # Get token at (x,y)
         t = brd.board[y][x]
         # Go through elements
+        player1 = 0
+        player2 = 0
+
+
+        for i in range(1, n):
+            if brd.board[y + i * dy][x + i * dx] == 1:
+                player1 = player1 + 1
+            elif brd.board[y + i * dy][x + i * dx] == 2:
+                player2 = player2 + 1
+        #
+        #
+        #
         count = 1
         for i in range(1, n):
-            if brd.board[y + i*dy][x + i*dx] == t:
-                count = count
+             if brd.board[y + i * dy][x + i * dx] == t:
+                 count = count + 1
+
+
+
         if count == n:
             if brd.board[y][x] == 1:
                 return self.score
             elif brd.board[y][x] == 2:
                 return -self.score
-            else:
-                return 0
-        else:
-            if brd.board[y][x] == 1:
-                return count
-            elif brd.board[y][x] == 2:
-                return -count
-            else:
-                return 0
+
+        return 0
+
+
+        # if player1 == n:
+        #     return self.score
+        # elif player2 == n:
+        #     return -self.score
+        # elif player1 == 2 or player1 == 3:
+        #     return 3
+        # elif player2 == 2 or player2 == 3:
+        #     return -3
+        # else:
+        #     if player1 >= player2:
+        #         return player1
+        #     else:
+        #         return -player2
+
+
 
 
     # Python3 program to extract first and last
@@ -92,7 +116,7 @@ class AlphaBetaAgent(agent.Agent):
                     return self.score
                 if score == -self.score:
                     return -self.score
-                horizontal += score
+                horizontal = horizontal + score
 
         for x in range(brd.w):
             for y in range(brd.h):
@@ -101,7 +125,7 @@ class AlphaBetaAgent(agent.Agent):
                     return self.score
                 if score == -self.score:
                     return -self.score
-                vertical += score
+                vertical = vertical + score
 
         for x in range(brd.w):
             for y in range(brd.h):
@@ -110,7 +134,7 @@ class AlphaBetaAgent(agent.Agent):
                     return self.score
                 if score == -self.score:
                     return -self.score
-                diag1 += score
+                diag1 = diag1 + score
 
         for x in range(brd.w):
             for y in range(brd.h):
@@ -119,7 +143,7 @@ class AlphaBetaAgent(agent.Agent):
                     return self.score
                 if score == -self.score:
                     return -self.score
-                diag2 += score
+                diag2 = diag2 + score
 
         points = horizontal + vertical + diag1 + diag2
 
@@ -157,10 +181,7 @@ class AlphaBetaAgent(agent.Agent):
     #     return 0
 
     def count_m_value(self, brd):
-        if self.max_depth == 5:
-            return self.get_score(brd, 5)
-        else:
-            return self.get_score(brd,4)
+            return self.get_score(brd,brd.n)
 
     # Pick a column.
     #
@@ -208,7 +229,7 @@ class AlphaBetaAgent(agent.Agent):
                 value[0] = next_value[0]
                 value[1] = col_list[j]
                 self.alpha = next_value[0]
-                print("max", "current_depth", current_depth, "maxv", value[0], "col", value[1])
+                print("max", "current_depth", current_depth, "maxv", value[0], "col", value[1], "alpha", self.alpha, "beta", self.beta)
             if self.alpha > self.beta:
                 return value
 
@@ -231,7 +252,7 @@ class AlphaBetaAgent(agent.Agent):
                 value[1] = col_list[j]
                 value[0]= next_value[0]
                 self.beta = next_value[0]
-                print("min", "current_depth", current_depth, "minv", value[0], "col", value[1])
+                print("min", "current_depth", current_depth, "minv", value[0], "col", value[1], "alpha", self.alpha, "beta", self.beta)
             if self.alpha > self.beta:
                 return value
 
@@ -263,4 +284,3 @@ class AlphaBetaAgent(agent.Agent):
         return succ
 
 THE_AGENT = AlphaBetaAgent("Group9", 4)
-
