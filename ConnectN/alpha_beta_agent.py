@@ -61,7 +61,7 @@ class AlphaBetaAgent(agent.Agent):
             if brd.board[y][x] == 1:
                 return self.score
             elif brd.board[y][x] == 2:
-                return -self.score
+                return -self.score+1
 
         return 0
 
